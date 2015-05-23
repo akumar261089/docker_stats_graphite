@@ -5,16 +5,18 @@ import socket
 import time
 import subprocess
 import json
+import sys
+import getopt
 
-CARBON_SERVER = '52.64.105.167'
-CARBON_PORT = 2003
+
+
 DELAY = 15  # secs
 previous_cpu = {}
 previous_system_cpu = {}
 cpu_usage_percent = 0.0
 
 
-def send_msg(message):
+def send_msg(message, CARBON_SERVER, CARBON_PORT):
     print 'sending message:\n%s' % message
     sock = socket.socket()
     sock.connect((CARBON_SERVER, CARBON_PORT))
@@ -50,7 +52,7 @@ def get_dockerdata():
         blkio_stats = stat_data[instance]["blkio_stats"]["io_serviced_recursive"][0]["value"]
         previous_cpu[instance] = float(stat_data[instance]["cpu_stats"]["cpu_usage"]["total_usage"])
         previous_system_cpu[instance] = float(stat_data[instance]["cpu_stats"]["system_cpu_usage"])
-        lines = [
+        lines_temp = [
             'rocket.test.docker.server.%s.%s.memory-usage %d %d' % (HOSTNAME, instance, memory_usage, timestamp),
             'rocket.test.docker.server.%s.%s.memory-limit %d %d' % (HOSTNAME, instance, memory_limit, timestamp),
             'rocket.test.docker.server.%s.%s.memory-usage-percent %f %d' % (HOSTNAME, instance, memory_percent, timestamp),
@@ -59,13 +61,38 @@ def get_dockerdata():
             'rocket.test.docker.server.%s.%s.network-tx-bytes %d %d' % (HOSTNAME, instance, network_tx, timestamp),
             'rocket.test.docker.server.%s.%s.blkio_stats %d %d' % (HOSTNAME, instance, blkio_stats, timestamp)
             ]
+        lines.extend(lines_temp)
+
+    return lines
+
+def main(argv):
+   CARBON_SERVER = 'localhost'
+   CARBON_PORT = 2003
+   try:
+      opts, args = getopt.getopt(argv,"hcarbon_server:carbon_port:",["c_server=","c_port="])
+   except getopt.GetoptError:
+      print 'main.py -carbon_server <graphite server> -carbon_port <carbon port>'
+      sys.exit(2)
+   for opt, arg in opts:
+      if opt == '-h':
+         print 'main.py -carbon_server <graphite server> -carbon_port <carbon port>'
+         sys.exit()
+      elif opt in ("-carbon_server", "--c_server"):
+         CARBON_SERVER = arg
+      elif opt in ("-carbon_port", "--c_port"):
+         CARBON_PORT = arg
+
+   while True:
+        lines = get_dockerdata()
         message = '\n'.join(lines) + '\n'
-        send_msg(message)
+        send_msg(message, CARBON_SERVER, CARBON_PORT)   
+        time.sleep(DELAY)
+
+
+
+    
 
 
 if __name__ == '__main__':
-
-
-    while True:
-        get_dockerdata()
-        time.sleep(DELAY)
+    main(sys.argv[1:])
+    
