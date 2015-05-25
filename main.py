@@ -53,6 +53,7 @@ def get_dockerdata():
         previous_cpu[instance] = float(stat_data[instance]["cpu_stats"]["cpu_usage"]["total_usage"])
         previous_system_cpu[instance] = float(stat_data[instance]["cpu_stats"]["system_cpu_usage"])
         lines_temp = [
+            'rocket.test.docker.server.%s.%s.number-of-dockers %d %d' % (HOSTNAME, instance, number_of_dockers, timestamp),
             'rocket.test.docker.server.%s.%s.memory-usage %d %d' % (HOSTNAME, instance, memory_usage, timestamp),
             'rocket.test.docker.server.%s.%s.memory-limit %d %d' % (HOSTNAME, instance, memory_limit, timestamp),
             'rocket.test.docker.server.%s.%s.memory-usage-percent %f %d' % (HOSTNAME, instance, memory_percent, timestamp),
