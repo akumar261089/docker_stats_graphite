@@ -70,7 +70,7 @@ def main(argv):
    CARBON_SERVER = 'localhost'
    CARBON_PORT = 2003
    try:
-      opts, args = getopt.getopt(argv,"hcarbon_server:carbon_port:",["c_server=","c_port="])
+      opts, args = getopt.getopt(argv,"hs:p:",["c_server=","c_port="])
    except getopt.GetoptError:
       print 'main.py -carbon_server <graphite server> -carbon_port <carbon port>'
       sys.exit(2)
@@ -78,10 +78,10 @@ def main(argv):
       if opt == '-h':
          print 'main.py -carbon_server <graphite server> -carbon_port <carbon port>'
          sys.exit()
-      elif opt in ("-carbon_server", "--c_server"):
+      elif opt in ("-s", "--c_server"):
          CARBON_SERVER = arg
-      elif opt in ("-carbon_port", "--c_port"):
-         CARBON_PORT = arg
+      elif opt in ("-p", "--c_port"):
+         CARBON_PORT = int(arg)
 
    while True:
         lines = get_dockerdata()
