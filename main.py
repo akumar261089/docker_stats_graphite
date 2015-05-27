@@ -72,11 +72,11 @@ def main(argv):
    try:
       opts, args = getopt.getopt(argv,"hs:p:",["c_server=","c_port="])
    except getopt.GetoptError:
-      print 'main.py -carbon_server <graphite server> -carbon_port <carbon port>'
+      print 'main.py -s <graphite server> -p <carbon port>'
       sys.exit(2)
    for opt, arg in opts:
       if opt == '-h':
-         print 'main.py -carbon_server <graphite server> -carbon_port <carbon port>'
+         print 'main.py -s <graphite server> -p <carbon port>'
          sys.exit()
       elif opt in ("-s", "--c_server"):
          CARBON_SERVER = arg
