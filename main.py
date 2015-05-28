@@ -53,14 +53,14 @@ def get_dockerdata():
         previous_cpu[instance] = float(stat_data[instance]["cpu_stats"]["cpu_usage"]["total_usage"])
         previous_system_cpu[instance] = float(stat_data[instance]["cpu_stats"]["system_cpu_usage"])
         lines_temp = [
-            'rocket.test.docker.server.%s.%s.number-of-dockers %d %d' % (HOSTNAME, instance, number_of_docker, timestamp),
-            'rocket.test.docker.server.%s.%s.memory-usage %d %d' % (HOSTNAME, instance, memory_usage, timestamp),
-            'rocket.test.docker.server.%s.%s.memory-limit %d %d' % (HOSTNAME, instance, memory_limit, timestamp),
-            'rocket.test.docker.server.%s.%s.memory-usage-percent %f %d' % (HOSTNAME, instance, memory_percent, timestamp),
-            'rocket.test.docker.server.%s.%s.cpu-usage-percent %f %d' % (HOSTNAME, instance, cpu_usage_percent, timestamp),
-            'rocket.test.docker.server.%s.%s.network-rx-bytes %d %d' % (HOSTNAME, instance, network_rx, timestamp),
-            'rocket.test.docker.server.%s.%s.network-tx-bytes %d %d' % (HOSTNAME, instance, network_tx, timestamp),
-            'rocket.test.docker.server.%s.%s.blkio_stats %d %d' % (HOSTNAME, instance, blkio_stats, timestamp)
+            'test.docker.server.%s.number-of-dockers %d %d' % (HOSTNAME, number_of_docker, timestamp),
+            'test.docker.server.%s.%s.memory-usage %d %d' % (HOSTNAME, instance, memory_usage, timestamp),
+            'test.docker.server.%s.%s.memory-limit %d %d' % (HOSTNAME, instance, memory_limit, timestamp),
+            'test.docker.server.%s.%s.memory-usage-percent %f %d' % (HOSTNAME, instance, memory_percent, timestamp),
+            'test.docker.server.%s.%s.cpu-usage-percent %f %d' % (HOSTNAME, instance, cpu_usage_percent, timestamp),
+            'test.docker.server.%s.%s.network-rx-bytes %d %d' % (HOSTNAME, instance, network_rx, timestamp),
+            'test.docker.server.%s.%s.network-tx-bytes %d %d' % (HOSTNAME, instance, network_tx, timestamp),
+            'test.docker.server.%s.%s.blkio_stats %d %d' % (HOSTNAME, instance, blkio_stats, timestamp)
             ]
         lines.extend(lines_temp)
 
