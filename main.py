@@ -36,13 +36,15 @@ def get_dockerdata(ENV,NODE):
     for i in cc.containers():
       dockers_list.append(i['Names'][0])
       
-      print i
     number_of_docker= len(dockers_list)
+#    print dockers_list
     for instance in dockers_list:
-        cmd = "echo 'GET /containers" + instance + "/stats HTTP/1.0\r\n'  | nc -U /var/run/docker.sock | head -5 | tail -1"
+#        print instance
+        cmd = "echo 'GET /containers" + instance  + "/stats HTTP/1.0\\r\\n'  | nc -U /var/run/docker.sock | head -5 | tail -1"
+#        print cmd
         out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout.read()
+#        print out
         stat_data[instance] = json.loads(out)
-#        pprint.pprint(stat_data[instance])
         memory_limit = float(stat_data[instance]["memory_stats"]["limit"])
         memory_usage = float(stat_data[instance]["memory_stats"]["usage"])
         memory_percent = (memory_usage / memory_limit)*100.0
@@ -55,7 +57,7 @@ def get_dockerdata(ENV,NODE):
 
         network_rx = float(stat_data[instance]["network"]["rx_bytes"])
         network_tx = float(stat_data[instance]["network"]["tx_bytes"])
-        blkio_stats = stat_data[instance]["blkio_stats"]["io_serviced_recursive"][0]["value"]
+#        blkio_stats = stat_data[instance]["blkio_stats"]["io_serviced_recursive"][0]["value"]
         previous_cpu[instance] = float(stat_data[instance]["cpu_stats"]["cpu_usage"]["total_usage"])
         previous_system_cpu[instance] = float(stat_data[instance]["cpu_stats"]["system_cpu_usage"])
         lines_temp = [
@@ -67,7 +69,7 @@ def get_dockerdata(ENV,NODE):
             '%s.docker.server.%s.%s.cpu-usage-percent %f %d' % (ENV, NODE, instance, cpu_usage_percent, timestamp),
             '%s.docker.server.%s.%s.network-rx-bytes %d %d' % (ENV, NODE, instance, network_rx, timestamp),
             '%s.docker.server.%s.%s.network-tx-bytes %d %d' % (ENV, NODE, instance, network_tx, timestamp),
-            '%s.docker.server.%s.%s.blkio_stats %d %d' % (ENV, NODE, instance, blkio_stats, timestamp)
+#            '%s.docker.server.%s.%s.blkio_stats %d %d' % (ENV, NODE, instance, blkio_stats, timestamp)
             ]
         lines.extend(lines_temp)
 
