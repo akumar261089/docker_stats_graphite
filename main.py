@@ -7,8 +7,8 @@ import subprocess
 import json
 import sys
 import getopt
-
-
+import docker
+import pprint
 
 DELAY = 15  # secs
 previous_cpu = {}
@@ -25,18 +25,23 @@ def send_msg(message, CARBON_SERVER, CARBON_PORT):
 
 
 
-def get_dockerdata():
-    HOSTNAME = socket.gethostname()
+def get_dockerdata(ENV,NODE):
     timestamp = int(time.time())
     stat_data = {}
     lines = []
-    dockers = subprocess.Popen("sudo docker ps|grep -v 'NAMES'|awk '{ print $NF }'|tr '\n' ' ' ", shell=True, stdout=subprocess.PIPE).stdout.read()
-    dockers_list = dockers.split()
+    dockers_list=[]
+    docker_image_creation=[]
+    cc = docker.Client(base_url='unix://var/run/docker.sock', version='auto')
+    for i in cc.containers():
+      dockers_list.append(i['Names'][0])
+      
+      print i
     number_of_docker= len(dockers_list)
     for instance in dockers_list:
-        cmd = "echo 'GET /containers/" + instance + "/stats HTTP/1.0\r\n'  | nc -U /var/run/docker.sock | head -5 | tail -1"
+        cmd = "echo 'GET /containers" + instance + "/stats HTTP/1.0\r\n'  | nc -U /var/run/docker.sock | head -5 | tail -1"
         out = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE).stdout.read()
         stat_data[instance] = json.loads(out)
+#        pprint.pprint(stat_data[instance])
         memory_limit = float(stat_data[instance]["memory_stats"]["limit"])
         memory_usage = float(stat_data[instance]["memory_stats"]["usage"])
         memory_percent = (memory_usage / memory_limit)*100.0
@@ -53,14 +58,14 @@ def get_dockerdata():
         previous_cpu[instance] = float(stat_data[instance]["cpu_stats"]["cpu_usage"]["total_usage"])
         previous_system_cpu[instance] = float(stat_data[instance]["cpu_stats"]["system_cpu_usage"])
         lines_temp = [
-            'test.docker.server.%s.number-of-dockers %d %d' % (HOSTNAME, number_of_docker, timestamp),
-            'test.docker.server.%s.%s.memory-usage %d %d' % (HOSTNAME, instance, memory_usage, timestamp),
-            'test.docker.server.%s.%s.memory-limit %d %d' % (HOSTNAME, instance, memory_limit, timestamp),
-            'test.docker.server.%s.%s.memory-usage-percent %f %d' % (HOSTNAME, instance, memory_percent, timestamp),
-            'test.docker.server.%s.%s.cpu-usage-percent %f %d' % (HOSTNAME, instance, cpu_usage_percent, timestamp),
-            'test.docker.server.%s.%s.network-rx-bytes %d %d' % (HOSTNAME, instance, network_rx, timestamp),
-            'test.docker.server.%s.%s.network-tx-bytes %d %d' % (HOSTNAME, instance, network_tx, timestamp),
-            'test.docker.server.%s.%s.blkio_stats %d %d' % (HOSTNAME, instance, blkio_stats, timestamp)
+            '%s.docker.server.%s.number-of-dockers %d %d' % (ENV, NODE, number_of_docker, timestamp),
+            '%s.docker.server.%s.%s.memory-usage %d %d' % (ENV, NODE, instance, memory_usage, timestamp),
+            '%s.docker.server.%s.%s.memory-limit %d %d' % (ENV, NODE, instance, memory_limit, timestamp),
+            '%s.docker.server.%s.%s.memory-usage-percent %f %d' % (ENV, NODE, instance, memory_percent, timestamp),
+            '%s.docker.server.%s.%s.cpu-usage-percent %f %d' % (ENV, NODE, instance, cpu_usage_percent, timestamp),
+            '%s.docker.server.%s.%s.network-rx-bytes %d %d' % (ENV, NODE, instance, network_rx, timestamp),
+            '%s.docker.server.%s.%s.network-tx-bytes %d %d' % (ENV, NODE, instance, network_tx, timestamp),
+            '%s.docker.server.%s.%s.blkio_stats %d %d' % (ENV, NODE, instance, blkio_stats, timestamp)
             ]
         lines.extend(lines_temp)
 
@@ -69,22 +74,28 @@ def get_dockerdata():
 def main(argv):
    CARBON_SERVER = 'localhost'
    CARBON_PORT = 2003
+   ENV = "dummy"
+   NODE = "localhost"
    try:
-      opts, args = getopt.getopt(argv,"hs:p:",["c_server=","c_port="])
+      opts, args = getopt.getopt(argv,"hs:p:e:n:",["c_server=","c_port=","env=","node="])
    except getopt.GetoptError:
-      print 'main.py -s <graphite server> -p <carbon port>'
+      print 'main.py -s <graphite server> -p <carbon port> -e <prefix> -n <nodename>'
       sys.exit(2)
    for opt, arg in opts:
       if opt == '-h':
-         print 'main.py -s <graphite server> -p <carbon port>'
+         print 'main.py -s <graphite server> -p <carbon port> -e <prefix> -n <nodename>'
          sys.exit()
       elif opt in ("-s", "--c_server"):
          CARBON_SERVER = arg
       elif opt in ("-p", "--c_port"):
          CARBON_PORT = int(arg)
+      elif opt in ("-e", "--env"):
+         ENV = arg
+      elif opt in ("-n", "--node"):
+         NODE = arg
 
    while True:
-        lines = get_dockerdata()
+        lines = get_dockerdata(ENV,NODE)
         message = '\n'.join(lines) + '\n'
         send_msg(message, CARBON_SERVER, CARBON_PORT)   
         time.sleep(DELAY)
