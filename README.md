@@ -6,7 +6,7 @@ Data recieved from docker stats API is pushed to carbon server.
 
 Start Command:
 
-main.py -s <graphite server> -p <carbon port>
+main.py -s "graphite server" -p "carbon port" -e "prefix"
 
 -default values
  carbon_server = 'localhost'

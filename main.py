@@ -10,7 +10,7 @@ import getopt
 import docker
 import pprint
 
-DELAY = 15  # secs
+DELAY = 60  # secs
 previous_cpu = {}
 previous_system_cpu = {}
 cpu_usage_percent = 0.0
@@ -26,6 +26,7 @@ def send_msg(message, CARBON_SERVER, CARBON_PORT):
 
 
 def get_dockerdata(ENV,NODE):
+    HOSTNAME = socket.gethostname()
     timestamp = int(time.time())
     stat_data = {}
     lines = []
@@ -58,6 +59,7 @@ def get_dockerdata(ENV,NODE):
         previous_cpu[instance] = float(stat_data[instance]["cpu_stats"]["cpu_usage"]["total_usage"])
         previous_system_cpu[instance] = float(stat_data[instance]["cpu_stats"]["system_cpu_usage"])
         lines_temp = [
+<<<<<<< HEAD
             '%s.docker.server.%s.number-of-dockers %d %d' % (ENV, NODE, number_of_docker, timestamp),
             '%s.docker.server.%s.%s.memory-usage %d %d' % (ENV, NODE, instance, memory_usage, timestamp),
             '%s.docker.server.%s.%s.memory-limit %d %d' % (ENV, NODE, instance, memory_limit, timestamp),
